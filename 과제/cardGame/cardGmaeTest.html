@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+                img {
+            width: 120px;
+            height: 180px;
+            cursor: pointer;
+
+            transition: transform 1s ease;
+        }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .flip-card {
+            /* 요소의 배경색을 투명하게 설정한다.??????? */
+            background-color: transparent;
+            /* 높이 넓이 사진 크기와 동일하게 설정 */
+            width: 120px;
+            height: 180px;
+            /* 3D 변환을 적용할 때, 요소에 대한 원근감 설정. 값은 원근 거리를 나타내며, 숫자가 작을 수록 더 강한 원근감이 나타난다. 
+            이 속성 없으면 뭔가 밋밋해짐
+            */
+            perspective: 1000px;
+            display: inline-block;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            /* 부모(flip-card의 width, heigth의 100%) */
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            /* box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); */
+        }
+
+        /* flip-card에 마우스를 올린 상태에서 자손 중 .flip-card-inner를 선택 */
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+            /* Y축을 중심으로 180도 회전 */
+        }
+
+        .flip-card-front,
+        .flip-card-back {
+            /* .flip-card-inner를 기준으로 위치를 잡는다. */
+            position: absolute;
+            /* 넓이, 높이 .flip-card-inner의 100% */
+            width: 100%;
+            height: 100%;
+            /* 3D변환(transform)된 요소의 뒷면이 보이는지 여부를 결정.(보이지 않게 만든다.)*/
+            backface-visibility: hidden;
+        }
+
+        .flip-card-front {
+            /* 이미지가 아닌 텍스트를 사용할 경우에 참고 용도 */
+            background-color: #bbb;
+            color: black;
+        }
+
+        .flip-card-back {
+            background-color: #2980b9;
+            color: black;
+            /* 이걸 적용하면 위에서 backface-visibility: hidden;를 적용했기 때문에(변환된 요소의 뒷면 보이지 않게 만듦) 글씨가 보이지 않는다. 
+            .flip-card:hover .flip-card-inner에서 transform: rotateY(180deg);가 적용되면, 이미 180도 회전한 상태이기 때문에 합쳐서 총 360도 회전한 것과 같은 효과가 발생해서 정상적으로 보여진다.
+            -> 이렇게 카드가 뒤집히는 듯한 효과 구현
+            */
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="board">
+        <!-- 카드를 보여줄 곳 -->
+    </div>
+
+    <div class="flip-card">
+        <div class="flip-card-inner">
+            <div class="flip-card-front">
+                <img src="22.png" alt="Avatar" style="width: 120px; height: 180px;">
+            </div>
+            <div class="flip-card-back">
+                <img src="bear.png" alt="Avatar" style="width: 120px; height: 180px;">
+            </div>
+        </div>
+    </div>
+    <script>
+        const NUMBER_OF_CARDS = 52; // 카드의 총 개수
+        const NUMBER_OF_HINTS = 2;  // 힌트로 보여줄 카드의 개수
+        const NUMBER_OF_RANKS = 13; 
+
+        let cardArr = new Array(NUMBER_OF_CARDS);
+
+        window.onload = function () { // main 메서드
+            initGame(); // 게임 초기화
+            // startGame(); // 게임 시작
+        }
+
+        const A = 1;
+        const J = 11
+        const Q = 12;
+        const K = 13;
+
+        const DIAMOND = 1;
+        const CLOVER = 2;
+        const HEART = 3;
+        const SPADE = 4;
+
+        function Card(number, suit) {
+            //TODO suit랑 number 지역변수화하기
+            this.number = number;
+            this.suit = suit;
+            this.isFront = true; // 현재 카드가 앞면인지를 확인하는 변수
+            this.isPaired = false; // pair 여부를 확인하는 변수
+        }
+
+        Card.prototype.toString = function() {
+            let suit = "";
+            let number = "";
+
+            switch (this.suit) {
+                case 1: suit = "◆"; break;
+                case 2: suit = "♧"; break;
+                case 3: suit = "♡"; break;
+                case 4: suit = "♠"; break;
+                default:
+            }
+
+            switch (this.number) {
+                case 1:  number = "A"; break;
+                case 11: number = "J"; break;
+                case 12: number = "Q"; break;
+                case 13: number = "K"; break;
+                default: number = this.number + "";
+            }
+
+            return suit + number;
+        }
+
+        // 카드의 아이디(number + "" + suit)를 가져온다.
+        Card.prototype.getId = function() {
+            return this.number + "" + this.suit;
+        }
+
+        // 게임 초기화
+        function initGame() {
+            // 1. card를 담을 배열을 만든다.
+
+            // 2. 배열을 초기화한다.
+            initCard(cardArr);
+
+            // 3. 배열을 섞는다.
+            // shuffleCard(cardArr);
+
+            // 4. 카드를 div#board에 보여준다.
+            showCard(cardArr);
+
+            // 5. 각 카드에 클릭 이벤트를 등록한다.
+            let imgArr = document.getElementsByClassName("flip-card");
+
+            for (let i = 0; i < imgArr.length; i++) {
+                imgArr[i].onclick = cardClick;
+            }
+
+        }
+
+        // 카드 배열을 초기화한다.
+        function initCard(cardArr) {
+            let suitChk = 1;
+            let numberChk = 1;
+
+            for (let i = 0; i < NUMBER_OF_CARDS; i++) {
+                cardArr[i] = new Card(numberChk++, suitChk++);
+
+                if (suitChk > 4) suitChk = 1; // 다이아몬드(◆) = 4 그림 카드까지 만들었을 경우 다시 스페이드(♠) = 1 카드를 만들기 위해 1로 변경
+                if (numberChk > 13) numberChk = 1; // K(13)까지 카드를 만들었을 경우 다시 A(1)를 넣어주기 위해 1로 변경
+            }
+
+            // 기본 정렬
+            cardArr.sort(cardDefaultSortComparator);
+        }
+
+        // 기본 정렬 - 1순위 suit 2순위 숫자
+        function cardDefaultSortComparator(c, c2) {
+            if (c.suit == c2.suit) {
+                return c.number - c2.number;
+            } else {
+                return c.suit - c2.suit;
+            }
+        }
+
+        // 카드를 섞는다. 
+        function shuffleCard(cardArr) {
+            cardArr = cardArr.sort(() => Math.random() - 0.5);
+        }
+
+        // 카드를 div#board에 보여준다.
+        function showCard(cardArr) {
+            let card;
+            let result = "";
+            // 1. 카드의 개수만큼 반복문 돌린다.
+            for (let i = 0; i < NUMBER_OF_CARDS; i++) {
+                card = cardArr[i]; 
+
+                // 카드 이미지를 만든다.
+                result += createCardImg(card);
+                
+                // 12개가 한줄 = 만약 i가 12라면 br태그 넣어주기
+                if ((i + 1) % 13 == 0) {
+                    result+= `<br>`;
+                }
+                // 4. div#board에 innerHTML로 넣어준다.
+                document.getElementById('board').innerHTML = result;
+            }
+        }
+        
+        function createCardImg (card) {
+            let result = `
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="${(card.number - 1) + (card.suit - 1) * NUMBER_OF_RANKS}.png" id=${card.getId()} data-number="${card.number}" data-suit=${card.suit} data-isFront=true>
+                        </div>
+                        <div class="flip-card-back">
+                            <img src="bear.png" alt="Avatar" style="width: 120px; height: 180px;">
+                        </div>
+                    </div>
+                </div>
+            `;
+            return result;
+        }
+
+        function cardClick() {
+            this.classList.toggle('flipped');
+
+            // 카드를 찾는다.
+            const card = findCard(this.getElementsByTagName('img')[0]);
+
+            // 1. 카드가 앞면인지 확인한다.
+            if (isFront(card)) 
+                // 1-1. 앞면이면 return
+                return;
+
+            // 1-2. 뒷면이면 뒤집는다.
+            flip(card);
+
+            // 2. 뒤집은 카드가 2장인가?
+            const chkTwoCards = checkFrontCardCountTwo();
+            
+        }
+
+        // carImg 엘리먼트에서 cardArr중에 일치하는 카드를 찾는다.
+        function findCard(cardImg) {
+            const number = parseInt(cardImg.getAttribute('data-number'));
+            const suit = parseInt(cardImg.getAttribute('data-suit'));
+
+            for (let i = 0; i < NUMBER_OF_CARDS; i++) {
+                let card = cardArr[i];
+                if (card.number == number && card.suit == suit)
+                    return card;
+            }
+        }
+
+        // card가 앞면이면 true 아니면 false를 반환
+        // card는 Card 객체가 들어와야 한다.
+        function isFront(card) {
+            return card.isFront;
+        }
+
+        // 카드를 뒤집는다.
+        function flip(card, isFront) {
+            // 1. 카드가 앞면인지 확인한다. +) hide시에 pair된 카드들은 여젼히 보여져야 한다.
+            if (isFront && !card.isPaired) {
+                // 1-1. 앞면(그림)이면 뒷면(농담곰)을 보여준다.
+                showBack(card);
+            } else {
+                // 1-2. 뒷면(농담곰)이면 앞면(그림을 보여준다.)
+                showFront(card);
+            }
+        }
+
+        // 뒤집혀있는 카드의 개수가 2장인지 체크한다. 
+        function checkFrontCardCountTwo() {
+            // 뒤집혀있는 카드의 조건 : isFront = true && isMatched = false
+            let returnCards = [];
+
+            for (let i = 0; i < NUMBER_OF_CARDS; i++) {
+                let card = cardArr[i];
+                if (card.isFront && !card.isPaired) {
+                    returnCards.push(card);
+                }
+            }
+
+            if (returnCards.length == 2) { // 뒤집혀있는 카드의 개수가 2개면 2장의 카드를 담은 배열반환
+                return returnCards;
+            } else { // 아니라면 false반환
+                return false;
+            }
+        }
+
+
+    </script>
+</body>
+
+</html>

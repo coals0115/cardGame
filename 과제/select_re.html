@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        select {
+            float: left;
+            width: 70px;
+            height: 100px;
+        }
+
+        select > option {
+            /* font-size: 30px; */
+            /* margin: 10px; */
+        }
+
+        #buttons {
+            float: left;
+        }
+
+        #buttons > button{
+            width: 30px;
+            margin: 0 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!--
+        1. html 요소 그리기
+            1) select 생성
+            2) 버튼 생성
+            3) 오른쪽 select 생성
+
+    -->
+
+    <select id="leftSelect" multiple>
+        <option id="basketball">🏀농구🏀</option>
+        <option id="soccer">⚽️축구⚽️</option>
+        <option id="baseball">⚾️야구⚾️</option>
+        <option id="volleyball">🏐배구🏐</option>
+    </select>
+
+    <div id="buttons">
+        <button id="add">></button>
+        <button id="addAll">>></button>
+        <button id="minus"><</button>
+        <button id="minusAll"><<</button>
+        
+    </div>
+    
+    <select id="rightSelect" multiple></select>
+</body>
+<script>
+    const leftSelect = document.getElementById('leftSelect'); // 왼쪽 select(원본)
+    const rightSelect = document.getElementById('rightSelect'); // 오른쪽 select(이동)
+
+    // 선택된 option을 왼쪽에서 오른쪽으로 옮긴다.
+    function moveSelectedLeftToRight() {
+        moveSelect(leftSelect, rightSelect);
+    }
+
+    // 선택된 option을 오른쪽에서 왼쪽으로 옮긴다.
+    function moveSelectedRightToLeft() {
+        moveSelect(rightSelect, leftSelect);
+    }
+
+    // option을 옮긴다.
+    function moveSelect(from, to) {
+        // from에서 선택된 요소들을 to로 옮긴다.
+        const selectedOptions = Array.from(from.selectedOptions);
+        for (let i = 0; i < selectedOptions.length; i++) {
+            to.appendChild(selectedOptions[i]);
+        }
+    }
+
+    // 모든 option을 왼쪽에서 오른쪽으로 옮긴다.
+    function moveAllLeftToRight() {
+        // 모든 옵션을 선택한다.
+        selectAll(leftSelect);
+
+        // 선택한 옵션을 옮긴다.
+        moveSelect(leftSelect, rightSelect);
+    }
+    
+    // 모든 option을 오른쪽에서 왼쪽으로 옮긴다.
+    function moveAllRightToLeft() {
+        // 모든 옵션을 선택한다.
+        selectAll(rightSelect);
+        
+        // 선택한 옵션을 옮긴다.
+        moveSelect(rightSelect, leftSelect);
+        
+    }
+    
+    // 모든 옵션을 선택한다.
+    function selectAll(select) {
+        const options = select.children;
+        for (let i = 0; i < options.length; i++) {
+            options[i].selected = true;
+        }
+    }
+
+    // 선택 추가 버튼
+    document.getElementById('add').addEventListener("click", moveSelectedLeftToRight);
+    // 선택 빼기 버튼
+    document.getElementById('minus').addEventListener("click", moveSelectedRightToLeft);
+
+    // 전체 추가 버튼
+    document.getElementById('addAll').addEventListener("click", moveAllLeftToRight);
+    // 전체 빼기 버튼
+    document.getElementById('minusAll').addEventListener("click", moveAllRightToLeft);
+
+</script>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #check {
+            font-size: 30px;
+            float: left;
+            margin-right: 30px;
+        }
+
+        textarea {
+            width: 400px;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <!--
+        1.[완료] 화면 그리기
+        2. 이벤트 걸기
+        일단 전체는 제외하고 하나하나씩만하자.
+            1) 체크박스를 클릭하면 textarea에 값이 나와야 한다.
+                그럼 일단 클릭 이벤트가 필요하다. 
+                name이 sports인 요소에 이벤트가 발생되었을 경우에
+                그 클릭 이벤트가 발생한 요소의 innerHTML을 가져와서 그 내용을 textarea에 넣어준다.
+            
+            2) 체크박스 체크 취소를 하면 그 클릭 이벤트가 발생한 요소의 innerHTML을 가져와서 그 내용과 일치하는 textarea의 내용을 replace해서 지운다.
+        3. 체크된 항목의 값이 textarea에 나오게 한다.
+    -->
+
+    <div id="check">
+        <input type="checkbox" name="sports" id="all" value="🐥전체🐥"> 🐥전체🐥 <br>
+        <input type="checkbox" name="sports" id="basketball" value="🏀농구"> 🏀농구 <br>
+        <input type="checkbox" name="sports" id="soccer" value="⚽️축구"> ⚽️축구 <br>
+        <input type="checkbox" name="sports" id="baseball" value="⚾️야구"> ⚾️야구 <br>
+        <input type="checkbox" name="sports" id="volleyball" value="🏐배구"> 🏐배구 <br>
+    </div>
+
+    <textarea id="textarea"></textarea>
+
+</body>
+</html>
+<script>
+    const sportsCheckbox = document.getElementsByName('sports');
+
+    function change(e) {
+        const id = e.srcElement.id; // 클릭 이벤트가 발생한 요소의 id
+        
+        // id가 all이면 하위 체크 박스를 전부 체크/체크 해제 해준다.
+        if (id == 'all')
+            checkAll(e.srcElement.checked);
+        
+        // 체크 되어있는 값들을 가져온다.
+        let result = getCheckedValues();
+
+        // 위에서 가져온 값을 textarea의 value에 넣어준다.
+        document.getElementById('textarea').value = result; 
+    }
+    
+    for (let i = 0; i < sportsCheckbox.length; i++) {
+        sportsCheckbox[i].addEventListener("click", change);
+    }
+    
+    // 하위 체크박스를 전부 체크/체크해제 해준다.
+    function checkAll(checked) {
+        for (let i = 0; i < sportsCheckbox.length; i++)
+        sportsCheckbox[i].checked =  checked;
+    }
+    
+    // 체드 되어있은 값들을 가져온다.
+    function getCheckedValues() {
+        let result = "";
+
+        for (let i = 0; i < sportsCheckbox.length; i++) {
+            let sports = sportsCheckbox[i];
+            
+            // 체크되어있고 id가 전체가 아닌 요소의 값을 result에 넣어준다.
+            if (sports.checked && sports.id != 'all') {
+                result += sports.value;
+            } 
+        }
+
+        return result;
+    }
+</script>
